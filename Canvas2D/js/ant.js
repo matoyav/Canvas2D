@@ -97,6 +97,13 @@ function rect(x,y,w,h,c) {
     ctx.fillRect(x, y, w, h);
 }
 
+function circle(x, y, r, c) {
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, 2 * Math.PI);
+    ctx.strokeStyle = c;
+    ctx.stroke();
+}
+
 /*****************************************
  * Input
  */
@@ -125,8 +132,67 @@ function click(x, y) {
 * Run
 */
 
+var _w = 0;
+var _theta = 1.57;
+var GRAV = 9.8;
+var _armLen = 100;
+var _m = 1.5;
+var _fric = 0.008;
+
+function pendulum(mod) {
+
+
+    _dt = mod;
+
+    //wa is the angular acceleration
+    //_w is our angular velocity
+    //_theta is our current angle
+    //equaton:
+    //θ' = ω
+    //ω' = − (g⁄R) * sin( θ )
+    var wa = _dt * _m * (GRAV / _armLen) * Math.sin(_theta);
+    _w += wa;
+    _theta += _w;
+
+    if (_theta > Math.PI * 2)
+        _theta = _theta - Math.PI * 2;
+
+    if (_theta < -Math.PI * 2)
+        _theta = _theta + Math.PI * 2;
+        
+    _theta *= (1 - _fric);
+
+    var theta = _theta - Math.PI / 2;
+   
+    //NOTE: theta of 0 is relative to the tippity top in our equation...
+    //so subtract 90 degrees to match flashes rotation
+    //var theta = _theta - Math.PI / 2;
+
+    var ix = canvas.width / 2 + Math.cos(theta) * _armLen;
+    var iy = canvas.height / 2 + Math.sin(theta) * _armLen;
+
+
+    circle(ix, iy, 20, 'magenta');
+    line({ x: ix, y: iy }, { x: canvas.width / 2, y: canvas.height / 2 }, 'magenta');
+
+    ctx.font = "12px Georgia";
+    ctx.fillStyle = '#000';
+    ctx.fillText("_dt= " + _dt, 10, 10);
+    ctx.fillText("wa (angular acceleration) = " + wa, 10, 26);
+    ctx.fillText("_w (angular velocity) = " + _w, 10, 42);
+    ctx.fillText("_theta= " + _theta, 10, 58);
+    ctx.fillText("theta= " + theta, 10, 74);
+
+    ctx.fillText(Math.round(ix) + " " + Math.round(iy), 10, 90);
+}
+
 function update(mod) {
-    
+ 
+    rect(0, 0, canvas.width, canvas.height, '#eee');
+
+    pendulum(mod);
+
+
 }
 
 function render() {
@@ -143,7 +209,7 @@ canvas.addEventListener("mousedown", getPosition);
 
 var time = Date.now();
 
-setInterval(run, 10);
+setInterval(run, 20);
 
 
 
